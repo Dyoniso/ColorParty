@@ -1,16 +1,18 @@
 package com.dyoniso.colorparty.ui;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.dyoniso.colorparty.fragment.CPFragment;
 
 public class CPInterfaceActivity extends AppCompatActivity {
+    private static final String TAG = CPInterfaceActivity.class.getName();
     private static final int CONTENT_ID = 10001;
 
     @Override
@@ -21,5 +23,11 @@ public class CPInterfaceActivity extends AppCompatActivity {
 
         setContentView(frame, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
+
+        FragmentTransaction fT = getSupportFragmentManager().beginTransaction();
+        fT.add(CONTENT_ID, new CPFragment());
+        fT.commit();
+
+        Log.i(TAG, "New fragment created! ("+CPFragment.class.getSimpleName()+")");
     }
 }
