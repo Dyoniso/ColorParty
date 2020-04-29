@@ -25,6 +25,8 @@ import butterknife.OnClick;
 public class CPFragment extends Fragment {
     private static final String TAG = CPFragment.class.getName();
 
+    @BindView(R.id.score_view)
+    TextView zScoreView;
     @BindView(R.id.color_block_1)
     CardView zBlockColor1;
     @BindView(R.id.color_block_2)
@@ -38,6 +40,7 @@ public class CPFragment extends Fragment {
 
     private ColorAdapter zColorAdapter;
     private Color zChosenColor;
+    private int zScore;
 
     public CPFragment() {}
 
@@ -53,6 +56,26 @@ public class CPFragment extends Fragment {
         ButterKnife.bind(this, getActivity());
 
         zColorAdapter = new ColorAdapter();
+
+        cScore();
+    }
+
+    private void cScore() {
+        if (zScore < 0) {
+            zScore = 0;
+        }
+
+        zScoreView.setText("Score: "+zScore);
+    }
+
+    private void addScore(int v) {
+        zScore = zScore + v;
+        cScore();
+    }
+
+    private void removeScore(int v) {
+        zScore = zScore - v;
+        cScore();
     }
 
     @OnClick(R.id.btn_start_game) void start() {
@@ -63,10 +86,12 @@ public class CPFragment extends Fragment {
         int COLOR_BLOCK_ID = zColorAdapter.getColor(0).getID();
 
         if (zChosenColor.getID() == COLOR_BLOCK_ID) {
+            addScore(1);
             Log.e(TAG, "Correct "+COLOR_BLOCK_ID);
 
         } else {
             Log.e(TAG, "Error");
+            removeScore(5);
         }
 
         choseColor();
@@ -76,10 +101,12 @@ public class CPFragment extends Fragment {
         int COLOR_BLOCK_ID = zColorAdapter.getColor(1).getID();
 
         if (zChosenColor.getID() == COLOR_BLOCK_ID) {
+            addScore(1);
             Log.e(TAG, "Correct "+COLOR_BLOCK_ID);
 
         } else {
             Log.e(TAG, "Error");
+            removeScore(5);
         }
 
         choseColor();
@@ -89,10 +116,12 @@ public class CPFragment extends Fragment {
         int COLOR_BLOCK_ID = zColorAdapter.getColor(2).getID();
 
         if (zChosenColor.getID() == COLOR_BLOCK_ID) {
+            addScore(1);
             Log.e(TAG, "Correct "+COLOR_BLOCK_ID);
 
         } else {
             Log.e(TAG, "Error");
+            removeScore(5);
         }
 
         choseColor();
@@ -102,10 +131,12 @@ public class CPFragment extends Fragment {
         int COLOR_BLOCK_ID = zColorAdapter.getColor(3).getID();
 
         if (zChosenColor.getID() == COLOR_BLOCK_ID) {
+            addScore(1);
             Log.e(TAG, "Correct "+COLOR_BLOCK_ID);
 
         } else {
             Log.e(TAG, "Error");
+            removeScore(5);
         }
 
         choseColor();
