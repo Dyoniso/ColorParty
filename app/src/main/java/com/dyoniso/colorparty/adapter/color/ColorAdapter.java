@@ -27,10 +27,12 @@ public class ColorAdapter {
     }
 
     private void addColor() {
-        String[] colorNames = {"Azul", "Vermelho", "Verde", "Amarelo"};
+        int id = 0;
+        String[] colorNames = {"Vermelho", "Azul", "Amarelo", "Verde"};
 
         for (String colorName : colorNames) {
-            zColorList.add(new Color(colorName));
+            zColorList.add(new Color(id, colorName));
+            id++;
 
             Log.i(TAG, "Added in ArrayList(Color), item: "+colorName);
         }
