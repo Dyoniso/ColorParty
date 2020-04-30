@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Button;
 
 import com.dyoniso.colorparty.R;
+import com.dyoniso.colorparty.fragment.CPFragmentActivity;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -24,6 +25,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.btn_start) void start() {
-        startActivity(new Intent(getApplicationContext(), CPInterfaceActivity.class));
+        startActivity(new Intent(getApplicationContext(), CPFragmentActivity.class));
     }
 }
