@@ -3,4 +3,8 @@
     <string name="btn_start">Start</string>
     <string name="mock_text">Mock Text</string>
     <string name="mock_number">0000</string>
+    <string name="color_block_name_0">Vermelho</string>
+    <string name="color_block_name_1">Azul</string>
+    <string name="color_block_name_2">Amarelo</string>
+    <string name="color_block_name_3">Verde</string>
 </resources>

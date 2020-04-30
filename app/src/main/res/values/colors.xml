@@ -6,8 +6,8 @@
     <color name="colorAccent">#03DAC5</color>
 
     <!--CardBlock -->
-    <color name="color_block_1">#ffff4444</color>
-    <color name="color_block_2">#ff33b5e5</color>
-    <color name="color_block_3">#ffffbb33</color>
-    <color name="color_block_4">#ff99cc00</color>
+    <color name="color_block_0">#ffff4444</color>
+    <color name="color_block_1">#ff33b5e5</color>
+    <color name="color_block_2">#ffffbb33</color>
+    <color name="color_block_3">#ff99cc00</color>
 </resources>
