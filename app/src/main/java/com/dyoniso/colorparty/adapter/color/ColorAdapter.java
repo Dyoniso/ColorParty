@@ -41,7 +41,12 @@ public class ColorAdapter {
                 zContext.getString(R.string.color_block_name_0),
                 zContext.getString(R.string.color_block_name_1),
                 zContext.getString(R.string.color_block_name_2),
-                zContext.getString(R.string.color_block_name_3)
+                zContext.getString(R.string.color_block_name_3),
+                zContext.getString(R.string.color_block_name_4),
+                zContext.getString(R.string.color_block_name_5),
+                zContext.getString(R.string.color_block_name_6),
+                zContext.getString(R.string.color_block_name_7),
+
         };
 
         if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
@@ -49,7 +54,11 @@ public class ColorAdapter {
                     zContext.getColor(R.color.color_block_0),
                     zContext.getColor(R.color.color_block_1),
                     zContext.getColor(R.color.color_block_2),
-                    zContext.getColor(R.color.color_block_3)
+                    zContext.getColor(R.color.color_block_3),
+                    zContext.getColor(R.color.color_block_4),
+                    zContext.getColor(R.color.color_block_5),
+                    zContext.getColor(R.color.color_block_6),
+                    zContext.getColor(R.color.color_block_7)
             };
         }
 

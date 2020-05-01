@@ -3,8 +3,13 @@
     <string name="btn_start">Start</string>
     <string name="mock_text">Mock Text</string>
     <string name="mock_number">0000</string>
+
     <string name="color_block_name_0">Vermelho</string>
     <string name="color_block_name_1">Azul</string>
     <string name="color_block_name_2">Amarelo</string>
     <string name="color_block_name_3">Verde</string>
+    <string name="color_block_name_4">roxo</string>
+    <string name="color_block_name_5">verde agua</string>
+    <string name="color_block_name_6">dark magenta</string>
+    <string name="color_block_name_7">firebrick</string>
 </resources>

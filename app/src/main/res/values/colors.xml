@@ -10,4 +10,8 @@
     <color name="color_block_1">#ff33b5e5</color>
     <color name="color_block_2">#ffffbb33</color>
     <color name="color_block_3">#ff99cc00</color>
+    <color name="color_block_4">#FF00FF</color>
+    <color name="color_block_5">#2E8B57</color>
+    <color name="color_block_6">#B22222</color>
+    <color name="color_block_7">#8B008B</color>
 </resources>
