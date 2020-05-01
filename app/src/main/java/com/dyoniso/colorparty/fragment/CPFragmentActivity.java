@@ -25,8 +25,20 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class CPFragmentActivity extends FragmentActivity {
+interface CPViews {
+    void setTextColor(Color color, int hex);
+    void setScore(int score);
+}
+
+public class CPFragmentActivity extends FragmentActivity implements CPViews {
     private boolean zShowingBack;
+
+    @BindView(R.id.score_view)
+    TextView zScoreView;
+    @BindView(R.id.color_view)
+    TextView zColorView;
+
+    private CPFragment4B zCPFragment4B;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,12 +46,18 @@ public class CPFragmentActivity extends FragmentActivity {
         setContentView(R.layout.layout_trasition);
         ButterKnife.bind(this);
 
+        zCPFragment4B = new CPFragment4B(this);
+
         if (savedInstanceState == null) {
             getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.container, new CPFragment4B())
-                    .commit();
-        }
+                .beginTransaction()
+                .add(R.id.container, zCPFragment4B)
+                .commit();
+            }
+    }
+
+    @OnClick(R.id.btn_start_game) void start() {
+        zCPFragment4B.choseColor();
     }
 
     @OnClick(R.id.btn_trasition) void trasition() {
@@ -67,16 +85,25 @@ public class CPFragmentActivity extends FragmentActivity {
                 .commit();
     }
 
+    @Override
+    public void setTextColor(Color color, int hex) {
+        zColorView.setText(color.getName());
+        zColorView.setTextColor(hex);
+    }
+
+    @Override
+    public void setScore(int score) {
+        zScoreView.setText("Score: "+score);
+    }
+
     public static class CPFragment4B extends Fragment {
-        private final String TAG = com.dyoniso.colorparty.fragment.CPFragment.class.getName();
+        private final String TAG = CPFragment4B.class.getName();
 
         private int BLOCK_COLOR_ID_0 = 0;
         private int BLOCK_COLOR_ID_1 = 1;
         private int BLOCK_COLOR_ID_2 = 2;
         private int BLOCK_COLOR_ID_3 = 3;
 
-        @BindView(R.id.score_view)
-        TextView zScoreView;
         @BindView(R.id.color_block_0)
         CardView zBlockColor0;
         @BindView(R.id.color_block_1)
@@ -85,9 +112,8 @@ public class CPFragmentActivity extends FragmentActivity {
         CardView zBlockColor2;
         @BindView(R.id.color_block_3)
         CardView zBlockColor3;
-        @BindView(R.id.color_view)
-        TextView zColorView;
 
+        private CPViews zCPViews;
         private Color zChosenColor;
         private ColorAdapter zColorAdapter;
         private int zScore;
@@ -95,6 +121,10 @@ public class CPFragmentActivity extends FragmentActivity {
         private List<Color> zDifferentColor = new ArrayList<>();
 
         public CPFragment4B() {}
+
+        public CPFragment4B(CPViews cpViews) {
+            this.zCPViews = cpViews;
+        }
 
         @Nullable
         @Override
@@ -105,10 +135,14 @@ public class CPFragmentActivity extends FragmentActivity {
         @Override
         public void onViewCreated(@NonNull View r, @Nullable Bundle savedInstanceState) {
             super.onViewCreated(r, savedInstanceState);
-            ButterKnife.bind(this, getActivity());
+            ButterKnife.bind(this, r);
+        }
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
 
             zColorAdapter = new ColorAdapter(getContext());
-
             cScore();
         }
 
@@ -117,7 +151,7 @@ public class CPFragmentActivity extends FragmentActivity {
                 zScore = 0;
             }
 
-            zScoreView.setText("Score: "+zScore);
+            zCPViews.setScore(zScore);
         }
 
         private void addScore(int v) {
@@ -128,10 +162,6 @@ public class CPFragmentActivity extends FragmentActivity {
         private void removeScore(int v) {
             zScore = zScore - v;
             cScore();
-        }
-
-        @OnClick(R.id.btn_start_game) void start() {
-            choseColor();
         }
 
         @OnClick(R.id.color_block_0) void block1() {
@@ -213,7 +243,7 @@ public class CPFragmentActivity extends FragmentActivity {
             return rndColor;
         }
 
-        private void choseColor() {
+        public void choseColor() {
             zChosenColor =  selectRandomColor();
 
             Color block0 = selectDifferentRandomColor();
@@ -232,8 +262,7 @@ public class CPFragmentActivity extends FragmentActivity {
             zBlockColor3.setCardBackgroundColor(block3.getHex());
             zDifferentColor.clear();
 
-            zColorView.setText(zChosenColor.getName());
-            zColorView.setTextColor(selectRandomColor().getHex());
+            zCPViews.setTextColor(zChosenColor, selectRandomColor().getHex());
         }
     }
 
