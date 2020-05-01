@@ -1,6 +1,7 @@
 package com.dyoniso.colorparty.fragment;
 
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +22,10 @@ import com.dyoniso.colorparty.model.Color;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import butterknife.BindView;
@@ -127,10 +131,10 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
     public static class CPFragment4B extends Fragment {
         private final String TAG = CPFragment4B.class.getName();
 
-        private int BLOCK_COLOR_ID_0 = 0;
-        private int BLOCK_COLOR_ID_1 = 1;
-        private int BLOCK_COLOR_ID_2 = 2;
-        private int BLOCK_COLOR_ID_3 = 3;
+        private Color BLOCK_COLOR_0 = null;
+        private Color BLOCK_COLOR_1 = null;
+        private Color BLOCK_COLOR_2 = null;
+        private Color BLOCK_COLOR_3 = null;
 
         @BindView(R.id.color_block_0)
         CardView zBlockColor0;
@@ -141,6 +145,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         @BindView(R.id.color_block_3)
         CardView zBlockColor3;
 
+        private Timer zTimer;
         private CPViews zCPViews;
         private Color zChosenColor;
         private ColorAdapter zColorAdapter;
@@ -174,6 +179,27 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             cScore();
         }
 
+        private void rotationBlocks(Timer timer) {
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    Objects.requireNonNull(getActivity()).runOnUiThread(() -> {
+                        BLOCK_COLOR_0 = selectDifferentRandomColor();
+                        BLOCK_COLOR_1 = selectDifferentRandomColor();
+                        BLOCK_COLOR_2 = selectDifferentRandomColor();
+                        BLOCK_COLOR_3 = selectDifferentRandomColor();
+
+                        zBlockColor0.setCardBackgroundColor(BLOCK_COLOR_0.getHex());
+                        zBlockColor1.setCardBackgroundColor(BLOCK_COLOR_1.getHex());
+                        zBlockColor2.setCardBackgroundColor(BLOCK_COLOR_2.getHex());
+                        zBlockColor3.setCardBackgroundColor(BLOCK_COLOR_3.getHex());
+
+                        zDifferentColor.clear();
+                    });
+                }
+            }, 10, 100);
+        }
+
         private void cScore() {
             if (zScore < 0) {
                 zScore = 0;
@@ -193,9 +219,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_0) void block1() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_0) {
+            if (zChosenColor.getID() == BLOCK_COLOR_0.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_0);
+                Log.e(TAG, "Correct "+BLOCK_COLOR_0.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -206,9 +232,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_1) void block2() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_1) {
+            if (zChosenColor.getID() == BLOCK_COLOR_1.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_1);
+                Log.e(TAG, "Correct "+BLOCK_COLOR_1.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -219,9 +245,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_2) void block3() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_2) {
+            if (zChosenColor.getID() == BLOCK_COLOR_2.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_2);
+                Log.e(TAG, "Correct "+BLOCK_COLOR_2.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -232,9 +258,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_3) void block4() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_3) {
+            if (zChosenColor.getID() == BLOCK_COLOR_3.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_3);
+                Log.e(TAG, "Correct "+BLOCK_COLOR_3.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -271,24 +297,30 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             return rndColor;
         }
 
+        @Override
+        public void onPause() {
+            super.onPause();
+            if (zTimer != null) {
+                zTimer.cancel();
+            }
+        }
+
         public void choseColor() {
             zChosenColor =  selectRandomColor();
 
-            Color block0 = selectDifferentRandomColor();
-            Color block1 = selectDifferentRandomColor();
-            Color block2 = selectDifferentRandomColor();
-            Color block3 = selectDifferentRandomColor();
+            zTimer = new Timer();
+            rotationBlocks(zTimer);
 
-            BLOCK_COLOR_ID_0 = block0.getID();
-            BLOCK_COLOR_ID_1 = block1.getID();
-            BLOCK_COLOR_ID_2 = block2.getID();
-            BLOCK_COLOR_ID_3 = block3.getID();
+            new CountDownTimer(3000, 100) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                }
 
-            zBlockColor0.setCardBackgroundColor(block0.getHex());
-            zBlockColor1.setCardBackgroundColor(block1.getHex());
-            zBlockColor2.setCardBackgroundColor(block2.getHex());
-            zBlockColor3.setCardBackgroundColor(block3.getHex());
-            zDifferentColor.clear();
+                @Override
+                public void onFinish() {
+                    zTimer.cancel();
+                }
+            }.start();
 
             zCPViews.setTextColor(zChosenColor, selectRandomColor().getHex());
         }
@@ -310,13 +342,14 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         @BindView(R.id.color_block_5)
         CardView zBlockColor5;
 
-        private int BLOCK_COLOR_ID_0 = 0;
-        private int BLOCK_COLOR_ID_1 = 1;
-        private int BLOCK_COLOR_ID_2 = 2;
-        private int BLOCK_COLOR_ID_3 = 3;
-        private int BLOCK_COLOR_ID_4 = 4;
-        private int BLOCK_COLOR_ID_5 = 5;
+        private Color BLOCK_BLOCK_0 = null;
+        private Color BLOCK_BLOCK_1 = null;
+        private Color BLOCK_BLOCK_2 = null;
+        private Color BLOCK_BLOCK_3 = null;
+        private Color BLOCK_BLOCK_4 = null;
+        private Color BLOCK_BLOCK_5 = null;
 
+        private Timer zTimer;
         private CPViews zCPViews;
         private Color zChosenColor;
         private ColorAdapter zColorAdapter;
@@ -350,9 +383,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_0) void block0() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_0) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_0.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_0);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_0.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -363,9 +396,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_1) void block1() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_1) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_1.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_1);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_1.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -376,9 +409,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_2) void block2() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_2) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_2.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_2);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_2.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -389,9 +422,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_3) void block3() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_3) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_3.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_3);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_3.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -402,9 +435,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_4) void block4() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_4) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_4.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_4);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_4.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -415,9 +448,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_5) void block5() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_5) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_5.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_5);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_5.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -425,6 +458,14 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             }
 
             choseColor();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            if (zTimer != null) {
+                zTimer.cancel();
+            }
         }
 
         private void cScore() {
@@ -472,30 +513,47 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             return rndColor;
         }
 
+        private void rotationBlocks(Timer timer) {
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    Objects.requireNonNull(getActivity()).runOnUiThread(() -> {
+                        BLOCK_BLOCK_0 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_1 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_2 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_3 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_4 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_5 = selectDifferentRandomColor();
+
+                        zBlockColor0.setCardBackgroundColor(BLOCK_BLOCK_0.getHex());
+                        zBlockColor1.setCardBackgroundColor(BLOCK_BLOCK_1.getHex());
+                        zBlockColor2.setCardBackgroundColor(BLOCK_BLOCK_2.getHex());
+                        zBlockColor3.setCardBackgroundColor(BLOCK_BLOCK_3.getHex());
+                        zBlockColor4.setCardBackgroundColor(BLOCK_BLOCK_4.getHex());
+                        zBlockColor5.setCardBackgroundColor(BLOCK_BLOCK_5.getHex());
+
+                        zDifferentColor.clear();
+                    });
+                }
+            }, 10, 100);
+        }
+
         public void choseColor() {
             zChosenColor =  selectRandomColor();
 
-            Color block0 = selectDifferentRandomColor();
-            Color block1 = selectDifferentRandomColor();
-            Color block2 = selectDifferentRandomColor();
-            Color block3 = selectDifferentRandomColor();
-            Color block4 = selectDifferentRandomColor();
-            Color block5 = selectDifferentRandomColor();
+            zTimer = new Timer();
+            rotationBlocks(zTimer);
 
-            BLOCK_COLOR_ID_0 = block0.getID();
-            BLOCK_COLOR_ID_1 = block1.getID();
-            BLOCK_COLOR_ID_2 = block2.getID();
-            BLOCK_COLOR_ID_3 = block3.getID();
-            BLOCK_COLOR_ID_4 = block4.getID();
-            BLOCK_COLOR_ID_5 = block5.getID();
+            new CountDownTimer(3000, 100) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                }
 
-            zBlockColor0.setCardBackgroundColor(block0.getHex());
-            zBlockColor1.setCardBackgroundColor(block1.getHex());
-            zBlockColor2.setCardBackgroundColor(block2.getHex());
-            zBlockColor3.setCardBackgroundColor(block3.getHex());
-            zBlockColor4.setCardBackgroundColor(block4.getHex());
-            zBlockColor5.setCardBackgroundColor(block5.getHex());
-            zDifferentColor.clear();
+                @Override
+                public void onFinish() {
+                    zTimer.cancel();
+                }
+            }.start();
 
             zCPViews.setTextColor(zChosenColor, selectRandomColor().getHex());
         }
@@ -521,15 +579,16 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         @BindView(R.id.color_block_7)
         CardView zBlockColor7;
 
-        private int BLOCK_COLOR_ID_0 = 0;
-        private int BLOCK_COLOR_ID_1 = 1;
-        private int BLOCK_COLOR_ID_2 = 2;
-        private int BLOCK_COLOR_ID_3 = 3;
-        private int BLOCK_COLOR_ID_4 = 4;
-        private int BLOCK_COLOR_ID_5 = 5;
-        private int BLOCK_COLOR_ID_6 = 6;
-        private int BLOCK_COLOR_ID_7 = 7;
+        private Color BLOCK_BLOCK_0 = null;
+        private Color BLOCK_BLOCK_1 = null;
+        private Color BLOCK_BLOCK_2 = null;
+        private Color BLOCK_BLOCK_3 = null;
+        private Color BLOCK_BLOCK_4 = null;
+        private Color BLOCK_BLOCK_5 = null;
+        private Color BLOCK_BLOCK_6 = null;
+        private Color BLOCK_BLOCK_7 = null;
 
+        private Timer zTimer;
         private CPViews zCPViews;
         private Color zChosenColor;
         private ColorAdapter zColorAdapter;
@@ -563,9 +622,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_0) void block0() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_0) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_0.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_0);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_0.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -576,9 +635,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_1) void block1() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_1) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_1.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_1);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_1.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -589,9 +648,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_2) void block2() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_2) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_2.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_2);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_2.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -602,9 +661,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_3) void block3() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_3) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_3.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_3);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_3.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -615,9 +674,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_4) void block4() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_4) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_4.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_4);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_4.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -628,9 +687,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_5) void block5() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_5) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_5.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_5);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_5.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -642,9 +701,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
 
 
         @OnClick(R.id.color_block_6) void block6() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_6) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_6.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_6);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_6.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -654,11 +713,10 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             choseColor();
         }
 
-
         @OnClick(R.id.color_block_7) void block7() {
-            if (zChosenColor.getID() == BLOCK_COLOR_ID_6) {
+            if (zChosenColor.getID() == BLOCK_BLOCK_7.getID()) {
                 addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_ID_6);
+                Log.e(TAG, "Correct "+BLOCK_BLOCK_7.getID());
 
             } else {
                 Log.e(TAG, "Error");
@@ -666,6 +724,14 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             }
 
             choseColor();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            if (zTimer != null) {
+                zTimer.cancel();
+            }
         }
 
         private void cScore() {
@@ -713,36 +779,51 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             return rndColor;
         }
 
+        private void rotationBlocks(Timer timer) {
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    Objects.requireNonNull(getActivity()).runOnUiThread(() -> {
+                        BLOCK_BLOCK_0 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_1 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_2 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_3 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_4 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_5 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_6 = selectDifferentRandomColor();
+                        BLOCK_BLOCK_7 = selectDifferentRandomColor();
+
+                        zBlockColor0.setCardBackgroundColor(BLOCK_BLOCK_0.getHex());
+                        zBlockColor1.setCardBackgroundColor(BLOCK_BLOCK_1.getHex());
+                        zBlockColor2.setCardBackgroundColor(BLOCK_BLOCK_2.getHex());
+                        zBlockColor3.setCardBackgroundColor(BLOCK_BLOCK_3.getHex());
+                        zBlockColor4.setCardBackgroundColor(BLOCK_BLOCK_4.getHex());
+                        zBlockColor5.setCardBackgroundColor(BLOCK_BLOCK_5.getHex());
+                        zBlockColor6.setCardBackgroundColor(BLOCK_BLOCK_6.getHex());
+                        zBlockColor7.setCardBackgroundColor(BLOCK_BLOCK_7.getHex());
+
+                        zDifferentColor.clear();
+                    });
+                }
+            }, 10, 100);
+        }
+
         public void choseColor() {
             zChosenColor =  selectRandomColor();
 
-            Color block0 = selectDifferentRandomColor();
-            Color block1 = selectDifferentRandomColor();
-            Color block2 = selectDifferentRandomColor();
-            Color block3 = selectDifferentRandomColor();
-            Color block4 = selectDifferentRandomColor();
-            Color block5 = selectDifferentRandomColor();
-            Color block6 = selectDifferentRandomColor();
-            Color block7 = selectDifferentRandomColor();
+            zTimer = new Timer();
+            rotationBlocks(zTimer);
 
-            BLOCK_COLOR_ID_0 = block0.getID();
-            BLOCK_COLOR_ID_1 = block1.getID();
-            BLOCK_COLOR_ID_2 = block2.getID();
-            BLOCK_COLOR_ID_3 = block3.getID();
-            BLOCK_COLOR_ID_4 = block4.getID();
-            BLOCK_COLOR_ID_5 = block5.getID();
-            BLOCK_COLOR_ID_6 = block6.getID();
-            BLOCK_COLOR_ID_7 = block7.getID();
+            new CountDownTimer(3000, 100) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                }
 
-            zBlockColor0.setCardBackgroundColor(block0.getHex());
-            zBlockColor1.setCardBackgroundColor(block1.getHex());
-            zBlockColor2.setCardBackgroundColor(block2.getHex());
-            zBlockColor3.setCardBackgroundColor(block3.getHex());
-            zBlockColor4.setCardBackgroundColor(block4.getHex());
-            zBlockColor5.setCardBackgroundColor(block5.getHex());
-            zBlockColor6.setCardBackgroundColor(block6.getHex());
-            zBlockColor7.setCardBackgroundColor(block7.getHex());
-            zDifferentColor.clear();
+                @Override
+                public void onFinish() {
+                    zTimer.cancel();
+                }
+            }.start();
 
             zCPViews.setTextColor(zChosenColor, selectRandomColor().getHex());
         }
