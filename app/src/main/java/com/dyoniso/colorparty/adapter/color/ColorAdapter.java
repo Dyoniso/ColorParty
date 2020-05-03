@@ -16,12 +16,14 @@ import java.util.Random;
 public class ColorAdapter {
     private static final String TAG = ColorAdapter.class.getName();
 
+    private int zMaxQtdColor;
     private List<Color> zColorList;
     private Context zContext;
 
-    public ColorAdapter(Context context) {
+    public ColorAdapter(Context context, int max) {
         this.zColorList = new ArrayList<>();
         this.zContext = context;
+        this.zMaxQtdColor = max;
 
         addColor();
     }
@@ -63,6 +65,10 @@ public class ColorAdapter {
         }
 
         for (String colorName : colorNames) {
+            if (id > zMaxQtdColor) {
+                break;
+            }
+
             zColorList.add(new Color(id, colorName, hexs[id]));
             id++;
 
