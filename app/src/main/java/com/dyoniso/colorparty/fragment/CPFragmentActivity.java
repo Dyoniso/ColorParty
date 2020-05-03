@@ -6,6 +6,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.CycleInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,7 +19,6 @@ import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.dyoniso.colorparty.R;
@@ -26,7 +31,6 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -42,7 +46,6 @@ interface CPViews {
 
 public class CPFragmentActivity extends FragmentActivity implements CPViews {
     private static int SCORE_VALUE = 0;
-
     @BindView(R.id.tolerance_timer_view)
     TextView zToleranceTimerView;
     @BindView(R.id.score_view)
@@ -210,6 +213,9 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         @BindView(R.id.color_block_3)
         CardView zBlockColor3;
 
+        private Animation zFadeIn;
+        private Animation zFadeOut;
+        private AnimationSet zFadeAnimation;
         private Timer zTickBlock;
         private boolean zItsFirst = true;
         private Timer zTimer;
@@ -236,13 +242,58 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         public void onViewCreated(@NonNull View r, @Nullable Bundle savedInstanceState) {
             super.onViewCreated(r, savedInstanceState);
             ButterKnife.bind(this, r);
+
+            if (zItsFirst) {
+                startFadeAnim();
+            }
+        }
+
+        private void startFadeAnim() {
+            CardView[] cardViews = {
+                    zBlockColor0,
+                    zBlockColor1,
+                    zBlockColor2,
+                    zBlockColor3
+            };
+
+            zFadeIn = new AlphaAnimation(0, 4);
+            zFadeIn.setInterpolator(new DecelerateInterpolator());
+            zFadeIn.setStartOffset(100);
+            zFadeIn.setDuration(1000);
+            zFadeIn.setRepeatCount(Animation.INFINITE);
+
+            zFadeOut = new AlphaAnimation(1, 0);
+            zFadeOut.setInterpolator(new AccelerateInterpolator());
+            zFadeOut.setStartOffset(100);
+            zFadeOut.setDuration(1000);
+            zFadeOut.setRepeatCount(Animation.INFINITE);
+
+            zFadeAnimation = new AnimationSet(false);
+            zFadeAnimation.addAnimation(zFadeIn);
+            zFadeAnimation.addAnimation(zFadeOut);
+
+            for (CardView cardView : cardViews) {
+                cardView.setAnimation(zFadeAnimation);
+            }
+        }
+
+        private void cancelFadeAnim() {
+            if (zFadeAnimation != null) {
+                zFadeAnimation.cancel();
+            }
+            if (zFadeIn != null) {
+                zFadeIn.cancel();
+            }
+            if (zFadeOut != null) {
+                zFadeOut.cancel();
+            }
         }
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-
             zColorAdapter = new ColorAdapter(getContext(),3);
+
             cScore();
         }
 
@@ -330,52 +381,60 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_0) void block1() {
-            if (zChosenColor.getID() == BLOCK_COLOR_0.getID()) {
-                addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_0.getID());
+            if (zChosenColor != null) {
+                if (zChosenColor.getID() == BLOCK_COLOR_0.getID()) {
+                    addScore(1);
+                    Log.e(TAG, "Correct " + BLOCK_COLOR_0.getID());
 
-            } else {
-                Log.e(TAG, "Error");
-                removeScore(5);
+                } else {
+                    Log.e(TAG, "Error");
+                    removeScore(5);
+                }
             }
 
             zCPViews.startGameFT();
         }
 
         @OnClick(R.id.color_block_1) void block2() {
-            if (zChosenColor.getID() == BLOCK_COLOR_1.getID()) {
-                addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_1.getID());
+            if (zChosenColor != null) {
+                if (zChosenColor.getID() == BLOCK_COLOR_1.getID()) {
+                    addScore(1);
+                    Log.e(TAG, "Correct " + BLOCK_COLOR_1.getID());
 
-            } else {
-                Log.e(TAG, "Error");
-                removeScore(5);
+                } else {
+                    Log.e(TAG, "Error");
+                    removeScore(5);
+                }
             }
 
             zCPViews.startGameFT();
         }
 
         @OnClick(R.id.color_block_2) void block3() {
-            if (zChosenColor.getID() == BLOCK_COLOR_2.getID()) {
-                addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_2.getID());
+            if (zChosenColor != null) {
+                if (zChosenColor.getID() == BLOCK_COLOR_2.getID()) {
+                    addScore(1);
+                    Log.e(TAG, "Correct " + BLOCK_COLOR_2.getID());
 
-            } else {
-                Log.e(TAG, "Error");
-                removeScore(5);
+                } else {
+                    Log.e(TAG, "Error");
+                    removeScore(5);
+                }
             }
 
             zCPViews.startGameFT();
         }
 
         @OnClick(R.id.color_block_3) void block4() {
-            if (zChosenColor.getID() == BLOCK_COLOR_3.getID()) {
-                addScore(1);
-                Log.e(TAG, "Correct "+BLOCK_COLOR_3.getID());
+            if (zChosenColor != null) {
+                if (zChosenColor.getID() == BLOCK_COLOR_3.getID()) {
+                    addScore(1);
+                    Log.e(TAG, "Correct " + BLOCK_COLOR_3.getID());
 
-            } else {
-                Log.e(TAG, "Error");
-                removeScore(5);
+                } else {
+                    Log.e(TAG, "Error");
+                    removeScore(5);
+                }
             }
 
             zCPViews.startGameFT();
@@ -417,6 +476,8 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         public void choseColor() {
+            cancelFadeAnim();
+
             if (zTickBlock != null || zTimer != null) {
                 zTickBlock.cancel();
                 zTimer.cancel();
