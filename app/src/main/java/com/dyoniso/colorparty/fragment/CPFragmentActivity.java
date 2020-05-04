@@ -10,7 +10,6 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
-import android.view.animation.CycleInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 
@@ -24,6 +23,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.dyoniso.colorparty.R;
 import com.dyoniso.colorparty.adapter.color.ColorAdapter;
 import com.dyoniso.colorparty.model.Color;
+import com.dyoniso.colorparty.tool.ComboCount;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,20 +32,30 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import butterknife.BindAnim;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 interface CPViews {
-    void setTextColorName(Color color, int hex);
-    void setTextColor(Color color);
+    void setColorName(Color color, int hex);
+    void setColor(Color color);
     void setScore(int score);
     void toleranceTimer(int time);
     void startGameFT();
+    void beginTextTransition(String text, Timer timer);
+    void failMessage();
+    void successMessage();
+    void viewVisibility(int type);
 }
 
 public class CPFragmentActivity extends FragmentActivity implements CPViews {
     private static int SCORE_VALUE = 0;
+
+    @BindAnim(R.anim.alpha)
+    Animation zAlpha;
+    @BindView(R.id.color_status)
+    CardView zColorStatus;
     @BindView(R.id.tolerance_timer_view)
     TextView zToleranceTimerView;
     @BindView(R.id.score_view)
@@ -53,11 +63,13 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
     @BindView(R.id.color_view)
     TextView zColorView;
 
+    private ComboCount zComboCount;
     private int zLevelType;
     private CountDownTimer zToleranceTimer;
     private CPFragment4B zCPFragment4B;
     private CPFragment6B zCPFragment6B;
     private CPFragment8B zCPFragment8B;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,12 +80,30 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         zCPFragment6B = new CPFragment6B(this);
         zCPFragment8B = new CPFragment8B(this);
 
+        zComboCount = new ComboCount();
+
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                 .beginTransaction()
                 .add(R.id.container, zCPFragment4B)
                 .commit();
             }
+
+        zAlpha.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                zToleranceTimerView.clearAnimation();
+                zColorView.clearAnimation();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
 
         zLevelType = 1;
     }
@@ -92,6 +122,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             zToleranceTimer.cancel();
         }
 
+        zToleranceTimerView.startAnimation(zAlpha);
         zToleranceTimerView.setVisibility(View.VISIBLE);
 
         zToleranceTimer = new CountDownTimer(time * 1000, 100) {
@@ -102,23 +133,25 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
 
             @Override
             public void onFinish() {
-                startGame();
-                setScore(SCORE_VALUE - 1);
+                startGameFT();
+                if (SCORE_VALUE <= 0) {
+                    setScore(0);
+                } else {
+                    setScore(SCORE_VALUE - 1);
+                }
+
+                zColorView.setText("Time is over");
+                zColorView.setTextColor(getResources().getColor(R.color.color_block_0));
+                viewVisibility(0);
+
+                zComboCount.removeCombo();
                 zToleranceTimerView.setVisibility(View.INVISIBLE);
             }
         }.start();
     }
 
-    @OnClick(R.id.btn_trasition) void trasition() {
-        flipFragment(2);
-    }
-
     @Override
     public void startGameFT() {
-        startGame();
-    }
-
-    @OnClick(R.id.btn_start_game) void startGame() {
         switch (zLevelType) {
             case 1:
                 zCPFragment4B.choseColor();
@@ -136,14 +169,71 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         if (SCORE_VALUE <= 0) {
             flipFragment(1);
         }
-        if (SCORE_VALUE == 1) {
+        if (SCORE_VALUE == 20) {
             flipFragment(2);
         }
-        if (SCORE_VALUE == 2) {
+        if (SCORE_VALUE == 30) {
             flipFragment(3);
         }
-        if (SCORE_VALUE == 3) {
+        if (SCORE_VALUE == 45) {
             flipFragment(3);
+        }
+    }
+
+    @Override
+    public void beginTextTransition(String text, Timer timer) {
+        timer.scheduleAtFixedRate(new TimerTask() {
+            int count = 1;
+
+            @Override
+            public void run() {
+                runOnUiThread(() -> {
+                    switch (count) {
+                        case 1:
+                            zColorView.startAnimation(zAlpha);
+                            zColorView.setText(text);
+                            count = 2;
+                            break;
+
+                        case 2:
+                            zColorView.startAnimation(zAlpha);
+                            zColorView.setText("Click to play");
+                            count = 1;
+                            break;
+                    }
+                });
+            }
+        }, 0, 3000);
+    }
+
+    @Override
+    public void failMessage() {
+        zColorView.setText("Fail! -5");
+        zColorView.setTextColor(getResources().getColor(R.color.color_block_0));
+        viewVisibility(0);
+        zComboCount.removeCombo();
+    }
+
+    @Override
+    public void successMessage() {
+        zColorView.setText(zComboCount.getComboName());
+        zColorView.setTextColor(getResources().getColor(R.color.color_block_3));
+        viewVisibility(0);
+        zComboCount.addCombo();
+    }
+
+    @Override
+    public void viewVisibility(int type) {
+        switch (type) {
+            case 0:
+                zColorStatus.setVisibility(View.INVISIBLE);
+                zColorStatus.clearAnimation();
+                break;
+
+            case 1:
+                zColorStatus.setVisibility(View.VISIBLE);
+                zColorStatus.startAnimation(zAlpha);
+                break;
         }
     }
 
@@ -180,13 +270,16 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
     }
 
     @Override
-    public void setTextColorName(Color color, int hex) {
+    public void setColorName(Color color, int hex) {
+        zColorView.startAnimation(zAlpha);
         zColorView.setText(color.getName());
         zColorView.setTextColor(hex);
+
+        zColorStatus.setCardBackgroundColor(color.getHex());
     }
 
     @Override
-    public void setTextColor(Color color) {
+    public void setColor(Color color) {
         zColorView.setTextColor(color.getHex());
     }
 
@@ -213,6 +306,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         @BindView(R.id.color_block_3)
         CardView zBlockColor3;
 
+        private Timer zBeginMessageTimer;
         private Animation zFadeIn;
         private Animation zFadeOut;
         private AnimationSet zFadeAnimation;
@@ -243,6 +337,8 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             super.onViewCreated(r, savedInstanceState);
             ButterKnife.bind(this, r);
 
+            zBeginMessageTimer = new Timer();
+
             if (zItsFirst) {
                 startFadeAnim();
             }
@@ -272,12 +368,18 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             zFadeAnimation.addAnimation(zFadeIn);
             zFadeAnimation.addAnimation(zFadeOut);
 
+            zCPViews.beginTextTransition("Level 1", zBeginMessageTimer);
+
             for (CardView cardView : cardViews) {
                 cardView.setAnimation(zFadeAnimation);
             }
         }
 
         private void cancelFadeAnim() {
+            if (zBeginMessageTimer != null) {
+                zBeginMessageTimer.cancel();
+            }
+
             if (zFadeAnimation != null) {
                 zFadeAnimation.cancel();
             }
@@ -294,7 +396,6 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             super.onCreate(savedInstanceState);
             zColorAdapter = new ColorAdapter(getContext(),3);
 
-            cScore();
         }
 
         private void blockTick(Timer timer, int delay, int period) {
@@ -323,6 +424,8 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
 
         private void sequentialBlocks(Timer timer) {
             timer.scheduleAtFixedRate(new TimerTask() {
+                int count = 0;
+
                 @Override
                 public void run() {
                     Objects.requireNonNull(getActivity()).runOnUiThread(() -> {
@@ -333,9 +436,13 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
                         zBlockColor2.setCardBackgroundColor(sequential.getHex());
                         zBlockColor3.setCardBackgroundColor(sequential.getHex());
 
-                        zCPViews.setTextColor(sequential);
+                        zCPViews.setColor(sequential);
 
-                        zDifferentColor.clear();
+                        if (count >= 3) {
+                            zDifferentColor.clear();
+                        }
+
+                        count++;
                     });
                 }
             }, 40, 250);
@@ -381,13 +488,13 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_0) void block1() {
-            if (zChosenColor != null) {
+            if (zChosenColor != null || BLOCK_COLOR_0 != null) {
                 if (zChosenColor.getID() == BLOCK_COLOR_0.getID()) {
                     addScore(1);
-                    Log.e(TAG, "Correct " + BLOCK_COLOR_0.getID());
+                    zCPViews.successMessage();
 
                 } else {
-                    Log.e(TAG, "Error");
+                    zCPViews.failMessage();
                     removeScore(5);
                 }
             }
@@ -396,13 +503,13 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_1) void block2() {
-            if (zChosenColor != null) {
+            if (zChosenColor != null || BLOCK_COLOR_1 != null) {
                 if (zChosenColor.getID() == BLOCK_COLOR_1.getID()) {
                     addScore(1);
-                    Log.e(TAG, "Correct " + BLOCK_COLOR_1.getID());
+                    zCPViews.successMessage();
 
                 } else {
-                    Log.e(TAG, "Error");
+                    zCPViews.failMessage();
                     removeScore(5);
                 }
             }
@@ -411,13 +518,13 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_2) void block3() {
-            if (zChosenColor != null) {
+            if (zChosenColor != null || BLOCK_COLOR_2 != null) {
                 if (zChosenColor.getID() == BLOCK_COLOR_2.getID()) {
                     addScore(1);
-                    Log.e(TAG, "Correct " + BLOCK_COLOR_2.getID());
+                    zCPViews.successMessage();
 
                 } else {
-                    Log.e(TAG, "Error");
+                    zCPViews.failMessage();
                     removeScore(5);
                 }
             }
@@ -426,13 +533,13 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         }
 
         @OnClick(R.id.color_block_3) void block4() {
-            if (zChosenColor != null) {
+            if (zChosenColor != null || BLOCK_COLOR_3 != null) {
                 if (zChosenColor.getID() == BLOCK_COLOR_3.getID()) {
                     addScore(1);
-                    Log.e(TAG, "Correct " + BLOCK_COLOR_3.getID());
+                    zCPViews.successMessage();
 
                 } else {
-                    Log.e(TAG, "Error");
+                    zCPViews.failMessage();
                     removeScore(5);
                 }
             }
@@ -490,7 +597,10 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             if (zItsFirst) {
                 sequentialBlocks(zTimer);
 
-                new CountDownTimer(3500, 100) {
+                zCPViews.viewVisibility(1);
+                zCPViews.setColorName(zChosenColor, selectRandomColor().getHex());
+
+                new CountDownTimer(2200, 100) {
                     @Override
                     public void onTick(long millisUntilFinished) {
                     }
@@ -500,7 +610,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
                         zItsFirst = false;
                         rotationBlocks(zTimer);
 
-                        new CountDownTimer(1500, 100) {
+                        new CountDownTimer(1000, 100) {
                             @Override
                             public void onTick(long millisUntilFinished) {
                             }
@@ -518,7 +628,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             } else {
                 rotationBlocks(zTimer);
 
-                new CountDownTimer(1500, 100) {
+                new CountDownTimer(800, 100) {
                     @Override
                     public void onTick(long millisUntilFinished) {
                     }
@@ -528,11 +638,12 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
                         zTimer.cancel();
                         blockTick(zTickBlock, 1000, 2000);
                         zCPViews.toleranceTimer(4);
+
+                        zCPViews.viewVisibility(1);
+                        zCPViews.setColorName(zChosenColor, selectRandomColor().getHex());
                     }
                 }.start();
             }
-
-            zCPViews.setTextColorName(zChosenColor, selectRandomColor().getHex());
         }
     }
 
@@ -810,7 +921,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
                 }
             }.start();
 
-            zCPViews.setTextColorName(zChosenColor, selectRandomColor().getHex());
+            zCPViews.setColorName(zChosenColor, selectRandomColor().getHex());
         }
     }
 
@@ -1093,7 +1204,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
                 }
             }.start();
 
-            zCPViews.setTextColorName(zChosenColor, selectRandomColor().getHex());
+            zCPViews.setColorName(zChosenColor, selectRandomColor().getHex());
         }
     }
 
