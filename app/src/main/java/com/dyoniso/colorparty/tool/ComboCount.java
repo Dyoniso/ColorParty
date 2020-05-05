@@ -21,7 +21,7 @@ public class ComboCount {
     public String getComboName() {
         switch (getCount()) {
             case 2:
-                return getCount() + "x, Gread!";
+                return getCount() + "x, Great!";
             case 3:
                 return getCount() + "x, Good";
             case 4:
@@ -42,7 +42,7 @@ public class ComboCount {
                 if (getCount() > 10) {
                     return getCount()+"x, Color Master+++";
                 } else {
-                    return "Ok "+ getCount() + "x";
+                    return "Ok";
                 }
         }
     }

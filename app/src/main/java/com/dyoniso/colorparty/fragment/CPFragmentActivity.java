@@ -46,7 +46,7 @@ interface CPViews {
     void beginTextTransition(String text, Timer timer);
     void failMessage();
     void successMessage();
-    void viewVisibility(int type);
+    void viewChangeType(int type);
 }
 
 public class CPFragmentActivity extends FragmentActivity implements CPViews {
@@ -62,6 +62,8 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
     TextView zScoreView;
     @BindView(R.id.color_view)
     TextView zColorView;
+
+    private int zMinToNextLevel = 0;
 
     private ComboCount zComboCount;
     private int zLevelType;
@@ -128,7 +130,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
         zToleranceTimer = new CountDownTimer(time * 1000, 100) {
             @Override
             public void onTick(long t) {
-                zToleranceTimerView.setText("Resta: "+t/1000);
+                zToleranceTimerView.setText(String.valueOf(t/1000));
             }
 
             @Override
@@ -142,7 +144,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
 
                 zColorView.setText("Time is over");
                 zColorView.setTextColor(getResources().getColor(R.color.color_block_0));
-                viewVisibility(0);
+                viewChangeType(0);
 
                 zComboCount.removeCombo();
                 zToleranceTimerView.setVisibility(View.INVISIBLE);
@@ -152,6 +154,11 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
 
     @Override
     public void startGameFT() {
+        final int minToNextLevel_1 = 20;
+        final int minToNextLevel_2 = 30;
+        final int minToNextLevel_3 = 40;
+        final int minToNextLevel_4 = 50;
+
         switch (zLevelType) {
             case 1:
                 zCPFragment4B.choseColor();
@@ -168,15 +175,19 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
 
         if (SCORE_VALUE <= 0) {
             flipFragment(1);
+            zMinToNextLevel = minToNextLevel_1;
         }
-        if (SCORE_VALUE == 20) {
+        if (SCORE_VALUE == minToNextLevel_1) {
             flipFragment(2);
+            zMinToNextLevel = minToNextLevel_2;
         }
-        if (SCORE_VALUE == 30) {
+        if (SCORE_VALUE == minToNextLevel_1) {
             flipFragment(3);
+            zMinToNextLevel = minToNextLevel_3;
         }
-        if (SCORE_VALUE == 45) {
+        if (SCORE_VALUE == minToNextLevel_1) {
             flipFragment(3);
+            zMinToNextLevel = minToNextLevel_4;
         }
     }
 
@@ -210,7 +221,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
     public void failMessage() {
         zColorView.setText("Fail! -5");
         zColorView.setTextColor(getResources().getColor(R.color.color_block_0));
-        viewVisibility(0);
+        viewChangeType(0);
         zComboCount.removeCombo();
     }
 
@@ -218,21 +229,19 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
     public void successMessage() {
         zColorView.setText(zComboCount.getComboName());
         zColorView.setTextColor(getResources().getColor(R.color.color_block_3));
-        viewVisibility(0);
+        viewChangeType(0);
         zComboCount.addCombo();
     }
 
     @Override
-    public void viewVisibility(int type) {
+    public void viewChangeType(int type) {
         switch (type) {
             case 0:
-                zColorStatus.setVisibility(View.INVISIBLE);
-                zColorStatus.clearAnimation();
+                zColorStatus.setCardBackgroundColor(getResources().getColor(R.color.color_dark_gray));
                 break;
 
             case 1:
-                zColorStatus.setVisibility(View.VISIBLE);
-                zColorStatus.startAnimation(zAlpha);
+                zColorStatus.setCardBackgroundColor(getResources().getColor(R.color.color_block_0));
                 break;
         }
     }
@@ -286,7 +295,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
     @Override
     public void setScore(int score) {
         SCORE_VALUE = score;
-        zScoreView.setText("Score: "+score);
+        zScoreView.setText("Sc: "+score+"/"+zMinToNextLevel);
     }
 
     public static class CPFragment4B extends Fragment {
@@ -597,7 +606,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
             if (zItsFirst) {
                 sequentialBlocks(zTimer);
 
-                zCPViews.viewVisibility(1);
+                zCPViews.viewChangeType(1);
                 zCPViews.setColorName(zChosenColor, selectRandomColor().getHex());
 
                 new CountDownTimer(2200, 100) {
@@ -639,7 +648,7 @@ public class CPFragmentActivity extends FragmentActivity implements CPViews {
                         blockTick(zTickBlock, 1000, 2000);
                         zCPViews.toleranceTimer(4);
 
-                        zCPViews.viewVisibility(1);
+                        zCPViews.viewChangeType(1);
                         zCPViews.setColorName(zChosenColor, selectRandomColor().getHex());
                     }
                 }.start();
